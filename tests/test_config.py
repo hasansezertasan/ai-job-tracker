@@ -93,7 +93,11 @@ def test_settings_defaults_apply_without_env(monkeypatch, tmp_path):
     assert loaded.gemini_browser_executable is None
 
 
-def test_settings_read_from_env_file(tmp_path):
+def test_settings_read_from_env_file(monkeypatch, tmp_path):
+    monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
+    monkeypatch.delenv("TELEGRAM_CHAT_ID", raising=False)
+    monkeypatch.delenv("PROFILE_FILE", raising=False)
+    monkeypatch.delenv("GEMINI_URL", raising=False)
     env_file = tmp_path / ".env"
     env_file.write_text(
         "TELEGRAM_BOT_TOKEN=file-token\n"

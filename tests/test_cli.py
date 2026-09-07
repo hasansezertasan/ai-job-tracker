@@ -104,12 +104,18 @@ def test_analyze_without_telegram_credentials_fails_cleanly(monkeypatch):
 
 
 def test_analyzer_module_entry_point_selects_analyze_command(monkeypatch):
-    invoked_arguments = []
-    monkeypatch.setattr(cli_module, "app", lambda *, args: invoked_arguments.append(args))
+    invoked_args = []
+
+    class FakeCmd:
+        def main(self, *, args, prog_name):
+            invoked_args.append(args)
+
+    fake_click_app = type("FakeApp", (), {"commands": {"analyze": FakeCmd()}})()
+    monkeypatch.setattr("typer.main.get_command", lambda _app: fake_click_app)
 
     analyzer.main(["--chat-id", "cli-chat"])
 
-    assert invoked_arguments == [["analyze", "--chat-id", "cli-chat"]]
+    assert invoked_args == [["--chat-id", "cli-chat"]]
 
 
 def test_analyze_cli_chat_id_overrides_configured_destination(monkeypatch):

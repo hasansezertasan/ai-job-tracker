@@ -224,10 +224,14 @@ async def run_analysis(
 
 def main(arguments: list[str] | None = None) -> None:
     """Run the analyzer subcommand when this module is executed directly."""
+    import typer.main
+
     from ai_job_tracker.cli import app
 
     analyzer_arguments = sys.argv[1:] if arguments is None else arguments
-    app(args=["analyze", *analyzer_arguments])
+    click_app = typer.main.get_command(app)
+    analyze_cmd = click_app.commands["analyze"]
+    analyze_cmd.main(args=analyzer_arguments, prog_name="python -m ai_job_tracker.analyzer")
 
 
 if __name__ == "__main__":  # pragma: no cover - exercised through main()
