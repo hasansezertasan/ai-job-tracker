@@ -1,6 +1,8 @@
 """LLM client for job analysis via pydantic-ai."""
 
 from pydantic_ai import Agent
+from pydantic_ai.models import infer_model
+from pydantic_ai.providers import infer_provider_class
 
 from ai_job_tracker.config import AnalysisResult, PROMPT_TEMPLATE, settings
 
@@ -11,7 +13,11 @@ async def analyze_job_posting(prompt: str) -> dict:
         raise RuntimeError(
             "AI_API_KEY is required. Set it in .env — see .env.example for provider-specific examples."
         )
-    agent = Agent(settings.ai_model, output_type=AnalysisResult, api_key=settings.ai_api_key)
+    model = infer_model(
+        settings.ai_model,
+        provider_factory=lambda name: infer_provider_class(name)(api_key=settings.ai_api_key),
+    )
+    agent = Agent(model, output_type=AnalysisResult)
     result = await agent.run(prompt)
     return result.output.model_dump()
 

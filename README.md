@@ -467,18 +467,18 @@ Precedence is process environment > `.env` > default. The settings model lives
 in `src/ai_job_tracker/config.py` as a `pydantic-settings` `Settings` class;
 field names map to the upper-case keys above.
 
-To use a different LLM provider, change `AI_MODEL` and `AI_API_KEY`:
+To use a different LLM provider, install its extra and set `AI_MODEL` + `AI_API_KEY`:
 
 ```bash
-# OpenAI
+# OpenAI (requires: uv pip install "pydantic-ai-slim[openai]")
 AI_MODEL=openai:gpt-4o
 AI_API_KEY=sk-...
 
-# Anthropic
+# Anthropic (requires: uv pip install "pydantic-ai-slim[anthropic]")
 AI_MODEL=anthropic:claude-sonnet-4-20250514
 AI_API_KEY=sk-ant-...
 
-# Google Gemini (default)
+# Google Gemini (default — included out of the box)
 AI_MODEL=google:gemini-2.0-flash
 AI_API_KEY=your-gemini-key
 ```

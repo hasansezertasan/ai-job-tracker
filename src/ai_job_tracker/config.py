@@ -100,7 +100,7 @@ Guidance:
 - recommendation must be exactly one of Apply, Review, or Skip. Add one short next step after the keyword if possible, like "Apply — tailor resume" or "Review — confirm visa sponsorship"."""
 
 class AnalysisResult(BaseModel):
-    score: str = Field(description="Fit score in the format X/10, e.g. '8/10'")
+    score: str = Field(description="Fit score in the format X/10, e.g. '8/10'", pattern=r"^\d{1,2}/10$")
     why_good: str = Field(description="Concise reasons why this job is a good fit")
     why_bad: str = Field(description="Concise reasons why this job is not a good fit")
     recommendation: str = Field(
