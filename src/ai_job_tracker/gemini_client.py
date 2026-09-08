@@ -114,4 +114,12 @@ async def analyze_via_browser(prompt: str) -> dict:
         full_prompt,
         browser_executable=settings.gemini_browser_executable,
     )
-    return parse_gemini_response(response)
+    if not response or response == "No response received":
+        raise RuntimeError("Gemini returned no response")
+
+    from ai_job_tracker.analysis_validation import is_valid_analysis
+
+    result = parse_gemini_response(response)
+    if not is_valid_analysis(result):
+        raise RuntimeError(f"Gemini response unparsable: {response[:200]}")
+    return result
