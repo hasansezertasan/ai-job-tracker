@@ -2,7 +2,7 @@
 
 Automated job scraper + AI analyzer that evaluates job fit and sends results to Telegram.
 
-**Workflow:** Scrape jobs (JobSpy/LinkedIn) → AI analysis (pydantic-ai) → Telegram alerts
+**Workflow:** Scrape jobs (JobSpy/LinkedIn) → AI analysis → Telegram alerts
 
 ---
 
@@ -11,11 +11,13 @@ Automated job scraper + AI analyzer that evaluates job fit and sends results to 
 Requires [uv](https://docs.astral.sh/uv/) and uses Python 3.12 (installed automatically by uv when needed).
 
 ```bash
-# 1. Install dependencies
-uv sync
+# 1. Install with your preferred analysis backend
+uv sync --extra api       # API backend (pydantic-ai) — recommended
+# OR
+uv sync --extra browser   # Browser backend (Playwright)
 
 # 2. Configure environment
-cp .env.example .env  # Add your API key and Telegram credentials
+cp .env.example .env  # Add your credentials (see Setup for backend-specific keys)
 
 # 3. Add your CV
 cp profile.example.txt profile.txt  # then edit it with your own CV
@@ -37,7 +39,7 @@ uv run job daily
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │   Scraper   │────▶│  jobs.jsonl │────▶│  Analyzer   │
-│ JobSpy/LI   │     └─────────────┘     │ pydantic-ai │
+│ JobSpy/LI   │     └─────────────┘     │ API / Browser│
 └─────────────┘                          └──────┬──────┘
                                                 │
                                           ┌─────▼─────┐
@@ -53,7 +55,8 @@ uv run job daily
 | `src/ai_job_tracker/cli.py` | The `job` Typer app — every command and flag |
 | `src/ai_job_tracker/scraper.py` | Scrapes jobs from JobSpy/LinkedIn, outputs JSONL |
 | `src/ai_job_tracker/analyzer.py` | Scores jobs against your profile with an LLM |
-| `src/ai_job_tracker/llm.py` | pydantic-ai agent for structured job analysis |
+| `src/ai_job_tracker/llm.py` | Backend dispatch + API backend (pydantic-ai) |
+| `src/ai_job_tracker/gemini_client.py` | Browser backend (Playwright → Gemini web UI) |
 | `src/ai_job_tracker/run_daily.py` | Combines scraper + analyzer for scheduled runs |
 | `src/ai_job_tracker/telegram_notify.py` | Sends formatted alerts to Telegram |
 | `src/ai_job_tracker/config.py` | Settings model (`pydantic-settings`) + Big Tech matching |
@@ -72,11 +75,11 @@ uv run job daily
 - **Deduplication**: Avoids duplicate job entries
 
 ### AI Analysis
-- **Provider-agnostic**: Uses [pydantic-ai](https://ai.pydantic.dev/) — swap models by changing one env var
-- **Structured output**: Pydantic model ensures consistent score/recommendation format
+- **Two backends**: API (pydantic-ai, structured output, sub-second) or Browser (Playwright → Gemini web UI, no API key)
+- **Provider-agnostic API**: Uses [pydantic-ai](https://ai.pydantic.dev/) — swap models by changing one env var
 - **CV matching**: Compares job requirements against your profile
 - **Fit scoring**: 1-10 scale with recommendation (Apply/Review/Skip)
-- **Retry mechanism**: 3 retries with 5s delay on failures
+- **Retry mechanism**: 3 retries (5s delay for API, 30s for browser)
 
 ### Proxy Validation
 - **Parallel testing**: Tests 20 proxies concurrently
@@ -102,11 +105,18 @@ uv run job daily
 
 ### 1. Dependencies
 
+Install the base package plus the analysis backend you want:
+
 ```bash
-uv sync
+# API backend (recommended) — structured output via pydantic-ai
+uv sync --extra api
+
+# Browser backend — Playwright automation against Gemini web UI
+uv sync --extra browser
+uv run playwright install chromium   # download the browser binary
 ```
 
-`uv sync` installs the runtime dependencies and the `dev` dependency group from `pyproject.toml`. To run the test suite:
+To run the test suite:
 
 ```bash
 uv run pytest
@@ -120,15 +130,28 @@ Copy the example and fill in your credentials:
 cp .env.example .env
 ```
 
-At minimum, set:
+**For the API backend** (default):
 
 ```bash
+ANALYSIS_BACKEND=api
 AI_API_KEY=your-api-key-here
 TELEGRAM_BOT_TOKEN=your-bot-token-here
 TELEGRAM_CHAT_ID=your-chat-id-here
 ```
 
-For Gemini (default), get a free API key at [Google AI Studio](https://aistudio.google.com/api-keys).
+For Gemini (default model), get a free API key at [Google AI Studio](https://aistudio.google.com/api-keys).
+
+**For the browser backend:**
+
+```bash
+ANALYSIS_BACKEND=browser
+BROWSER_PROFILE_PATH=path/to/your/Brave/User Data
+TELEGRAM_BOT_TOKEN=your-bot-token-here
+TELEGRAM_CHAT_ID=your-chat-id-here
+```
+
+The browser profile must have an authenticated Gemini session.
+
 Get a Telegram bot token from [@BotFather](https://t.me/BotFather). See
 [Configuration](#configuration) for every supported key and its default.
 
@@ -381,6 +404,12 @@ After each `src/ai_job_tracker/run_daily.py` cycle, a summary report:
 - Set `AI_API_KEY` in `.env` with your provider's API key
 - For Gemini: get a free key at https://aistudio.google.com/api-keys
 
+**Browser backend: "No response received"**
+- Verify Gemini is accessible: https://gemini.google.com/app
+- Check the browser profile is logged into Gemini
+- Set `BROWSER_PROFILE_PATH` in `.env`
+- Run `uv run playwright install chromium` if not yet installed
+
 **Telegram not sending**
 - Verify bot token is correct in `.env`
 - Ensure chat ID is correct
@@ -404,7 +433,8 @@ After each `src/ai_job_tracker/run_daily.py` cycle, a summary report:
 │   ├── cli.py                # `job` Typer app — all argument parsing
 │   ├── analyzer.py           # Job analyzer — scores jobs against a profile
 │   ├── config.py             # Settings model (env / .env) + prompt template
-│   ├── llm.py                # pydantic-ai agent for structured analysis
+│   ├── llm.py                # Backend dispatch + API backend (pydantic-ai)
+│   ├── gemini_client.py      # Browser backend (Playwright → Gemini web UI)
 │   ├── job_loader.py         # JSONL loader
 │   ├── run_daily.py          # Scheduler (scraper + analyzer)
 │   ├── scraper.py            # Job scraper (JobSpy/LinkedIn)
@@ -450,13 +480,16 @@ Logs are written to `cron.log` in the project directory.
 
 All settings come from the environment or a `.env` file — nothing is
 hard-coded per machine. `.env.example` documents the full surface; copy it and
-fill in what you need. Every key is optional except the Telegram credentials
-and `AI_API_KEY`, and a blank value is treated as unset, so the default applies.
+fill in what you need. A blank value is treated as unset, so the default applies.
 
 | Env var | Description | Default |
 |---------|-------------|---------|
-| `AI_API_KEY` | API key for the configured LLM provider | *(required to analyze)* |
-| `AI_MODEL` | [pydantic-ai model string](https://ai.pydantic.dev/models/) | `google:gemini-2.0-flash` |
+| `ANALYSIS_BACKEND` | `api` or `browser` | `api` |
+| `AI_API_KEY` | API key for the configured LLM provider (API backend) | *(required for api)* |
+| `AI_MODEL` | [pydantic-ai model string](https://ai.pydantic.dev/models/) (API backend) | `google:gemini-2.0-flash` |
+| `BROWSER_PROFILE_PATH` | Chrome/Brave profile with authenticated Gemini session (browser backend) | *(required for browser)* |
+| `GEMINI_BROWSER_EXECUTABLE` | Browser executable path or command (browser backend) | *(Playwright's bundled Chromium)* |
+| `GEMINI_URL` | Gemini web app URL (browser backend) | `https://gemini.google.com/app` |
 | `TELEGRAM_BOT_TOKEN` | Your Telegram bot token | *(required to notify)* |
 | `TELEGRAM_CHAT_ID` | Destination chat or channel ID | *(required to notify)* |
 | `PROFILE_FILE` | Path to your CV text file | `profile.txt` |
