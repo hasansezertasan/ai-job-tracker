@@ -6,7 +6,7 @@ environment or a `.env` file. Field names map to their upper-case env var
 surface. Nothing here is hard-coded per-machine.
 """
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # Which analysis backend to use: "api" (pydantic-ai) or "browser" (Playwright).
     # Install the matching extra: pip install 'ai-job-tracker[api]' or '[browser]'.
-    analysis_backend: str = "api"
+    analysis_backend: Literal["api", "browser"] = "api"
 
     # --- API backend settings ---
     ai_api_key: str | None = None

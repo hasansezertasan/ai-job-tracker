@@ -16,18 +16,6 @@ WHY GOOD: ...
 WHY BAD: ...
 RECOMMENDATION: <Apply|Review|Skip> — <one short next step>"""
 
-COMMON_BROWSER_COMMANDS = [
-    "brave-browser",
-    "brave-browser-stable",
-    "brave-browser-nightly",
-    "brave",
-    "chromium",
-    "chromium-browser",
-    "google-chrome",
-    "google-chrome-stable",
-]
-
-
 def resolve_browser_executable(explicit_path: str | None = None) -> str | None:
     if explicit_path:
         has_path_separator = os.path.sep in explicit_path or (

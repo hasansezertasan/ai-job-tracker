@@ -11,7 +11,7 @@ from ai_job_tracker.llm import analyze_job_posting, build_prompt
 from ai_job_tracker.analysis_validation import is_valid_analysis
 
 MAX_RETRIES = 3
-RETRY_DELAY = 5  # seconds — API retries are fast, no 30s browser reload
+RETRY_DELAYS = {"api": 5, "browser": 30}
 
 def get_seen_urls(results_file: str) -> set[str]:
     """Get URLs of jobs with successful analysis records only.
@@ -72,6 +72,7 @@ async def analyze_job(
     prompt = build_prompt(profile, job)
     print(f"  Submitting to LLM...")
 
+    retry_delay = RETRY_DELAYS.get(settings.analysis_backend, 5)
     last_error = None
     for attempt in range(max_retries):
         try:
@@ -80,8 +81,8 @@ async def analyze_job(
         except Exception as e:
             last_error = str(e)
             if attempt < max_retries - 1:
-                print(f"  LLM failed (attempt {attempt + 1}/{max_retries}), retrying in {RETRY_DELAY}s...")
-                await asyncio.sleep(RETRY_DELAY)
+                print(f"  LLM failed (attempt {attempt + 1}/{max_retries}), retrying in {retry_delay}s...")
+                await asyncio.sleep(retry_delay)
     else:
         raise Exception(f"LLM failed after {max_retries} attempts: {last_error}")
 
