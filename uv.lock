@@ -8,11 +8,18 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "linkedin-scraper" },
-    { name = "pydantic-ai-slim", extra = ["google"] },
     { name = "pydantic-settings" },
     { name = "python-jobspy" },
     { name = "python-telegram-bot" },
     { name = "typer" },
+]
+
+[package.optional-dependencies]
+api = [
+    { name = "pydantic-ai-slim", extra = ["google"] },
+]
+browser = [
+    { name = "playwright" },
 ]
 
 [package.dev-dependencies]
@@ -24,12 +31,14 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "linkedin-scraper", specifier = ">=3.0.0" },
-    { name = "pydantic-ai-slim", extras = ["google"], specifier = ">=2.0.0" },
+    { name = "playwright", marker = "extra == 'browser'", specifier = ">=1.52.0" },
+    { name = "pydantic-ai-slim", extras = ["google"], marker = "extra == 'api'", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "python-jobspy", specifier = ">=1.1.82" },
     { name = "python-telegram-bot", specifier = ">=22.0" },
     { name = "typer", specifier = ">=0.27.2" },
 ]
+provides-extras = ["api", "browser"]
 
 [package.metadata.requires-dev]
 dev = [

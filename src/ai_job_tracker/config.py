@@ -30,10 +30,18 @@ class Settings(BaseSettings):
     # operators must choose the destination in their environment or on the CLI.
     telegram_chat_id: str | None = None
 
-    # LLM API key — for Gemini, get one free at https://aistudio.google.com/api-keys
+    # Which analysis backend to use: "api" (pydantic-ai) or "browser" (Playwright).
+    # Install the matching extra: pip install 'ai-job-tracker[api]' or '[browser]'.
+    analysis_backend: str = "api"
+
+    # --- API backend settings ---
     ai_api_key: str | None = None
-    # pydantic-ai model string: "google:gemini-2.0-flash", "openai:gpt-4o", etc.
     ai_model: str = "google:gemini-2.0-flash"
+
+    # --- Browser backend settings ---
+    browser_profile_path: str = ""
+    gemini_browser_executable: str | None = None
+    gemini_url: str = "https://gemini.google.com/app"
 
     # Default file paths, relative to the working directory the CLI runs in.
     profile_file: str = "profile.txt"

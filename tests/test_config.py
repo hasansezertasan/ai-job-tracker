@@ -80,7 +80,10 @@ def test_big_tech_companies_has_all_seven():
 
 
 def test_settings_defaults_apply_without_env(monkeypatch, tmp_path):
-    for key in ("PROFILE_FILE", "JOBS_INPUT_FILE", "AI_API_KEY", "TELEGRAM_BOT_TOKEN"):
+    for key in (
+        "PROFILE_FILE", "JOBS_INPUT_FILE", "AI_API_KEY",
+        "TELEGRAM_BOT_TOKEN", "ANALYSIS_BACKEND", "BROWSER_PROFILE_PATH",
+    ):
         monkeypatch.delenv(key, raising=False)
 
     loaded = Settings(_env_file=tmp_path / "missing.env")
@@ -88,9 +91,12 @@ def test_settings_defaults_apply_without_env(monkeypatch, tmp_path):
     assert loaded.profile_file == "profile.txt"
     assert loaded.jobs_input_file == "jobs.jsonl"
     assert loaded.analysis_output_file == "analysis_results.jsonl"
+    assert loaded.analysis_backend == "api"
     assert loaded.ai_model == "google:gemini-2.0-flash"
     assert loaded.telegram_bot_token is None
     assert loaded.ai_api_key is None
+    assert loaded.browser_profile_path == ""
+    assert loaded.gemini_browser_executable is None
 
 
 def test_settings_read_from_env_file(tmp_path):
