@@ -113,7 +113,7 @@ class AnalysisResult(BaseModel):
     why_bad: str = Field(description="Concise reasons why this job is not a good fit")
     recommendation: str = Field(
         description="One of 'Apply', 'Review', or 'Skip', optionally followed by a dash and a short next step",
-        pattern=r"^(Apply|Review|Skip)",
+        pattern=r"^(Apply|Review|Skip)\b",
     )
 
 
