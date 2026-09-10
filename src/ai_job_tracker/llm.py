@@ -2,19 +2,32 @@
 
 from ai_job_tracker.config import settings
 
+RETRY_DELAYS = {"api": 5, "browser": 30}
+INTER_JOB_DELAYS = {"api": 0, "browser": 8}
+
+
+def get_retry_delay() -> int:
+    return RETRY_DELAYS.get(settings.analysis_backend, 5)
+
+
+def get_inter_job_delay() -> int:
+    return INTER_JOB_DELAYS.get(settings.analysis_backend, 0)
+
+
+def parse_score(score_str: str) -> int:
+    try:
+        return int(score_str.split("/")[0])
+    except (ValueError, IndexError):
+        return 0
+
 
 async def analyze_job_posting(prompt: str) -> dict:
     """Submit a prompt to the configured backend and return structured analysis dict."""
-    backend = settings.analysis_backend
-    if backend == "api":
+    if settings.analysis_backend == "api":
         return await _analyze_via_api(prompt)
-    if backend == "browser":
-        from ai_job_tracker.gemini_client import analyze_via_browser
+    from ai_job_tracker.gemini_client import analyze_via_browser
 
-        return await analyze_via_browser(prompt)
-    raise ValueError(
-        f"Unknown ANALYSIS_BACKEND: {backend!r}. Use 'api' or 'browser'."
-    )
+    return await analyze_via_browser(prompt)
 
 
 async def _analyze_via_api(prompt: str) -> dict:

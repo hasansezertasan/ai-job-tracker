@@ -1,3 +1,8 @@
+---
+name: analyze-job
+description: Analyze a single job posting against the user's profile and return a structured fitness assessment.
+---
+
 # Analyze Job Posting
 
 Analyze a single job posting against the user's profile and return a structured fitness assessment.

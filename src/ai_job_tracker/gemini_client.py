@@ -93,9 +93,7 @@ async def submit_to_gemini(browser_path: str, prompt: str, browser_executable: s
             finally:
                 await context.close()
 
-    except ImportError:
-        raise
-    except Exception as e:
+    except (PlaywrightError, OSError, TimeoutError) as e:
         raise RuntimeError(f"Gemini interaction failed: {e}") from e
 
 

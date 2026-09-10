@@ -7,11 +7,10 @@ from ai_job_tracker.config import settings
 from ai_job_tracker.user_profile import load_profile
 from ai_job_tracker.job_loader import load_jobs
 from ai_job_tracker.telegram_notify import send_message, format_job_analysis
-from ai_job_tracker.llm import analyze_job_posting, build_prompt
+from ai_job_tracker.llm import analyze_job_posting, build_prompt, get_retry_delay, get_inter_job_delay, parse_score
 from ai_job_tracker.analysis_validation import is_valid_analysis
 
 MAX_RETRIES = 3
-RETRY_DELAYS = {"api": 5, "browser": 30}
 
 def get_seen_urls(results_file: str) -> set[str]:
     """Get URLs of jobs with successful analysis records only.
@@ -72,7 +71,7 @@ async def analyze_job(
     prompt = build_prompt(profile, job)
     print(f"  Submitting to LLM...")
 
-    retry_delay = RETRY_DELAYS.get(settings.analysis_backend, 5)
+    retry_delay = get_retry_delay()
     last_error = None
     for attempt in range(max_retries):
         try:
@@ -86,16 +85,7 @@ async def analyze_job(
     else:
         raise Exception(f"LLM failed after {max_retries} attempts: {last_error}")
 
-    if not is_valid_analysis(analysis):
-        raise Exception(
-            f"LLM response missing required analysis fields: {analysis}"
-        )
-
-    score_str = analysis.get("score", "0/10")
-    try:
-        score_val = int(score_str.split("/")[0])
-    except (ValueError, IndexError):
-        score_val = 0
+    score_val = parse_score(analysis.get("score", "0/10"))
     if score_val < 6:
         print(f"  ⏭ Skipped — score {score_val}/10 below threshold")
         return {'job': job, 'analysis': analysis}
@@ -171,6 +161,10 @@ async def run_analysis(
             error_count += 1
             print(f"  ✗ Error: {e}")
             save_result({'job': job, 'error': str(e)}, output)
+
+        inter_delay = get_inter_job_delay()
+        if inter_delay and i < len(jobs) - 1:
+            await asyncio.sleep(inter_delay)
 
     print(f"\n{'='*50}")
     print(f"Complete: {success_count} succeeded, {error_count} failed")

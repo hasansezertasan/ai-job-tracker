@@ -92,7 +92,7 @@ def test_settings_defaults_apply_without_env(monkeypatch, tmp_path):
     assert loaded.jobs_input_file == "jobs.jsonl"
     assert loaded.analysis_output_file == "analysis_results.jsonl"
     assert loaded.analysis_backend == "api"
-    assert loaded.ai_model == "google:gemini-2.0-flash"
+    assert loaded.ai_model == "google:gemini-2.5-flash"
     assert loaded.telegram_bot_token is None
     assert loaded.ai_api_key is None
     assert loaded.browser_profile_path == ""

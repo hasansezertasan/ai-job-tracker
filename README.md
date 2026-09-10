@@ -486,7 +486,7 @@ fill in what you need. A blank value is treated as unset, so the default applies
 |---------|-------------|---------|
 | `ANALYSIS_BACKEND` | `api` or `browser` | `api` |
 | `AI_API_KEY` | API key for the configured LLM provider (API backend) | *(required for api)* |
-| `AI_MODEL` | [pydantic-ai model string](https://ai.pydantic.dev/models/) (API backend) | `google:gemini-2.0-flash` |
+| `AI_MODEL` | [pydantic-ai model string](https://ai.pydantic.dev/models/) (API backend) | `google:gemini-2.5-flash` |
 | `BROWSER_PROFILE_PATH` | Chrome/Brave profile with authenticated Gemini session (browser backend) | *(required for browser)* |
 | `GEMINI_BROWSER_EXECUTABLE` | Browser executable path or command (browser backend) | *(Playwright's bundled Chromium)* |
 | `GEMINI_URL` | Gemini web app URL (browser backend) | `https://gemini.google.com/app` |
@@ -512,7 +512,7 @@ AI_MODEL=anthropic:claude-sonnet-4-20250514
 AI_API_KEY=sk-ant-...
 
 # Google Gemini (default — included out of the box)
-AI_MODEL=google:gemini-2.0-flash
+AI_MODEL=google:gemini-2.5-flash
 AI_API_KEY=your-gemini-key
 ```
 

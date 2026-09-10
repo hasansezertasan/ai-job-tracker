@@ -36,7 +36,7 @@ class Settings(BaseSettings):
 
     # --- API backend settings ---
     ai_api_key: str | None = None
-    ai_model: str = "google:gemini-2.0-flash"
+    ai_model: str = "google:gemini-2.5-flash"
 
     # --- Browser backend settings ---
     browser_profile_path: str = ""
